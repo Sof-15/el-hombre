@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>El Hombre - Web Interactiva</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+      background-color: black;
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+
+    body.loaded {
+      opacity: 1;
+    }
+
+    .scene {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-size: cover;
+      background-position: center;
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      z-index: 0;
+      transform: scale(1.1);
+      transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+    }
+
+    .scene.active {
+      opacity: 1;
+      z-index: 1;
+      transform: scale(1);
+    }
+
+    .scene-text {
+      position: absolute;
+      top: 20px;
+      font-size: 1.5rem;
+      color: white;
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 10px;
+      border-radius: 5px;
+      text-align: center;
+      max-width: 90%;
+      opacity: 0;
+      transform: translateY(20px); /* Inicialmente fuera de lugar */
+      transition: opacity 1s ease, transform 1s ease;
+    }
+
+    .scene.active .scene-text {
+      opacity: 1;
+      transform: translateY(0); /* Se mueve a su posición original */
+    }
+
+    .start-button, .nav-button {
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      background-color: rgba(0, 0, 0, 0.5); /* Transparencia en el fondo */
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      border-radius: 8px;
+      margin: 10px;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+
+    .start-button:hover, .nav-button:hover {
+      transform: scale(1.1); /* Efecto de aumento de tamaño */
+      background-color: rgba(0, 0, 0, 0.7); /* Cambio en el fondo al pasar el mouse */
+    }
+
+    .nav-container {
+      position: absolute;
+      bottom: 20px;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      gap: 20px;
+      z-index: 10;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 1s ease, transform 1s ease;
+    }
+
+    .nav-container.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body class="loaded">
+
+  <!-- Escenas -->
+  <div class="scene active" id="scene-1" style="background-image: url('Escena1.png');">
+    <button class="start-button" onclick="startExperience()">Iniciar</button>
+    <div class="scene-text">Un viaje comienza en el vacío...</div>
+  </div>
+
+  <div class="scene" id="scene-2" style="background-image: url('Escena2.png');">
+    <div class="scene-text">El aterrizaje en un mundo desconocido.</div>
+  </div>
+
+  <div class="scene" id="scene-3" style="background-image: url('Escena3.png');">
+    <div class="scene-text">La gente camina sin notar lo extraordinario.</div>
+  </div>
+
+  <div class="scene" id="scene-4" style="background-image: url('Escena4.png');">
+    <div class="scene-text">Martin revela la verdad de lo que ocurrió.</div>
+  </div>
+
+  <div class="scene" id="scene-5" style="background-image: url('Escena5.png');">
+    <div class="scene-text">La tensión entre la fe y la razón.</div>
+  </div>
+
+  <div class="scene" id="scene-6" style="background-image: url('Escena6.png');">
+    <div class="scene-text">Los testimonios de quienes vivieron el milagro.</div>
+  </div>
+
+  <div class="scene" id="scene-7" style="background-image: url('Escena7.png');">
+    <div class="scene-text">El capitán se enfrenta a la verdad.</div>
+  </div>
+
+  <div class="scene" id="scene-8" style="background-image: url('Escena8.png');">
+    <div class="scene-text">El viaje interminable a través del tiempo.</div>
+  </div>
+
+  <div class="scene" id="scene-9" style="background-image: url('Escena9.png');">
+    <div class="scene-text">La paz regresa al pueblo.</div>
+  </div>
+
+  <div class="scene" id="scene-10" style="background-image: url('Escena10.png');">
+    <div class="scene-text">“Cada uno lo encuentra a su modo.”</div>
+  </div>
+
+  <!-- Controles de navegación -->
+  <div class="nav-container" id="nav">
+    <button class="nav-button" onclick="prevScene()">Anterior</button>
+    <button class="nav-button" onclick="nextScene()">Siguiente</button>
+  </div>
+
+  <!-- Audios -->
+  <audio id="audio-1" src="Sonido1.mp3"></audio>
+  <audio id="audio-2" src="Sonido2.mp3"></audio>
+  <audio id="audio-3" src="Sonido3.mp3"></audio>
+  <audio id="audio-4" src="Sonido4.mp3"></audio>
+  <audio id="audio-5" src="Sonido5.mp3"></audio>
+  <audio id="audio-6" src="Sonido6.mp3"></audio>
+  <audio id="audio-7" src="Sonido7.mp3"></audio>
+  <audio id="audio-8" src="Sonido8.mp3"></audio>
+  <audio id="audio-9" src="Sonido9.mp3"></audio>
+  <audio id="audio-10" src="Sonido10.mp3"></audio>
+
+  <script>
+    let currentScene = 1;
+    const totalScenes = 10;
+    let hasStarted = false;
+
+    function playSceneAudio(sceneNumber) {
+      for (let i = 1; i <= totalScenes; i++) {
+        const audio = document.getElementById(`audio-${i}`);
+        if (audio) {
+          audio.pause();
+          audio.currentTime = 0;
+        }
+      }
+
+      const currentAudio = document.getElementById(`audio-${sceneNumber}`);
+      if (currentAudio) {
+        setTimeout(() => {
+          currentAudio.play().catch((e) => {
+            console.warn(`No se pudo reproducir el audio de la escena ${sceneNumber}:`, e);
+          });
+        }, 150);
+      }
+    }
+
+    function startExperience() {
+      hasStarted = true;
+      document.querySelector(".start-button")?.remove();
+      document.getElementById("nav").classList.add("show"); // Mostrar los botones después de iniciar
+      playSceneAudio(currentScene); // Iniciar audio de la escena 1
+    }
+
+    function nextScene() {
+      if (currentScene < totalScenes) {
+        document.getElementById(`scene-${currentScene}`).classList.remove("active");
+        currentScene++;
+        const nextSceneElement = document.getElementById(`scene-${currentScene}`);
+        nextSceneElement.classList.add("active");
+        playSceneAudio(currentScene);
+      }
+    }
+
+    function prevScene() {
+      if (currentScene > 1) {
+        document.getElementById(`scene-${currentScene}`).classList.remove("active");
+        currentScene--;
+        const prevSceneElement = document.getElementById(`scene-${currentScene}`);
+        prevSceneElement.classList.add("active");
+        playSceneAudio(currentScene);
+      }
+    }
+  </script>
+
+</body>
+</html>
